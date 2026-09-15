@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CursosModule } from './cursos/cursos.module';
 import { CommonModule } from './common/common.module';
 import { JoiValidationSchema } from './config/joi.validation';
+import { EstudiantesModule } from './estudiantes/estudiantes.module';
+import { InscripcionesModule } from './inscripciones/inscripciones.module';
 
 
 @Module({
@@ -29,7 +31,9 @@ import { JoiValidationSchema } from './config/joi.validation';
     }),
 
     CursosModule,
-    CommonModule
+    CommonModule,
+    EstudiantesModule,
+    InscripcionesModule
   ],
   controllers: [AppController],
   providers: [AppService],

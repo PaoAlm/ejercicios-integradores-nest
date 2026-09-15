@@ -1,25 +1,25 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
 import { Repository, DataSource, In } from 'typeorm';
-import { isUUID } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 import { CategoriasValidas } from './interfaces/categorias';
+import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
+import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
 
 @Injectable()
 export class CursosService {
 
   private defaultLimit: number;
-  private readonly logger = new Logger('CursosService');
 
   constructor(
     @InjectRepository(Curso)
       private readonly cursoRepository: Repository<Curso>,
       private readonly configService: ConfigService,
-      private readonly dataSource: DataSource
+      private readonly dataSource: DataSource,
   ) {
     this.defaultLimit = configService.get<number>('DEFAULT_LIMIT');
   }
@@ -31,7 +31,7 @@ export class CursosService {
       return curso;
 
     } catch (error) {
-      this.handleExceptions( error );
+      HandleDbExceptions.handle(error, 'CursosService');
     }
   }
 
@@ -75,22 +75,35 @@ export class CursosService {
       await this.cursoRepository.save( curso );
       return curso;
     } catch (error) {
-      this.handleExceptions(error);
+      HandleDbExceptions.handle(error, 'CursosService');
     }
   }
 
   async remove(id: string) {
-   const curso = await this.findOne( id );
-   await this.cursoRepository.remove( curso );
-    
-   return `El curso: con el id: ${ id } ha sido eliminado.`;
-  }
+    const curso = await this.cursoRepository.findOneBy({ id });
 
-  private handleExceptions( error: any ) {
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
+    if (!curso) {
+      throw new NotFoundException(`El curso con el id: ${id} no existe.`);
+    }
 
-    this.logger.error(error)
-      throw new InternalServerErrorException('Unexpected error, check server logs')
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+
+      await queryRunner.manager.delete(Inscripcion, { curso: { id: id } }); 
+      await queryRunner.manager.delete(Curso, { id: id });
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: `El curso y todas sus inscripciones fueron eliminados con éxito.` };
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      console.log(error);
+      throw new BadRequestException('Error al intentar eliminar el curso y sus inscripciones');  
+    }
   }
 }
