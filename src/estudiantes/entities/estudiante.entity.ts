@@ -10,4 +10,20 @@ export class Estudiante {
 
   @Column('text', { unique: true })
   email: string;
+
+  @Column('text', {
+    select: false
+  })
+  password: string;
+
+  @Column('text', {
+    array: true,
+    default: ['estudiante']
+  })
+  roles: string[];
+
+  @Column('bool', {
+    default: true
+  })
+  isActive: boolean;
 }

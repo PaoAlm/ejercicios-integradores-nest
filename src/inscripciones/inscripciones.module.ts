@@ -8,11 +8,13 @@ import { Inscripcion } from './entities/inscripcion.entity';
 import { ConfigModule } from '@nestjs/config';
 import { CursosModule } from 'src/cursos/cursos.module';
 import { EstudiantesModule } from '../estudiantes/estudiantes.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [InscripcionesController],
   providers: [InscripcionesService],
   imports: [
+      AuthModule,
       ConfigModule,
       CursosModule,
       EstudiantesModule,

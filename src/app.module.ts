@@ -8,6 +8,8 @@ import { CommonModule } from './common/common.module';
 import { JoiValidationSchema } from './config/joi.validation';
 import { EstudiantesModule } from './estudiantes/estudiantes.module';
 import { InscripcionesModule } from './inscripciones/inscripciones.module';
+import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -33,7 +35,9 @@ import { InscripcionesModule } from './inscripciones/inscripciones.module';
     CursosModule,
     CommonModule,
     EstudiantesModule,
-    InscripcionesModule
+    InscripcionesModule,
+    SeedModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

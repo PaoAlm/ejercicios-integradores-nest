@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { CategoriasValidas } from './interfaces/categorias';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
+import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
 
 @Injectable()
 export class CursosService {
@@ -24,7 +25,7 @@ export class CursosService {
     this.defaultLimit = configService.get<number>('DEFAULT_LIMIT');
   }
 
-  async create(createCursoDto: CreateCursoDto) {
+  async create(createCursoDto: CreateCursoDto, user: Estudiante) {
     try {
       const curso = this.cursoRepository.create( createCursoDto )
       await this.cursoRepository.save( curso )
@@ -117,5 +118,20 @@ export class CursosService {
       console.log(error);
       throw new BadRequestException('Error al intentar eliminar el curso y sus inscripciones');  
     }
+  }
+
+  async deleteAllCursos() {
+
+    const query = this.cursoRepository.createQueryBuilder('curso');
+
+    try {
+      return await query
+        .delete()
+        .execute();
+
+    } catch (error) {
+      HandleDbExceptions.handle(error, 'CursosService');
+    }
+
   }
 }

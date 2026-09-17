@@ -6,11 +6,13 @@ import { Curso } from './entities/curso.entity';
 import { ConfigModule } from '@nestjs/config';
 import { Inscripcion } from '../inscripciones/entities/inscripcion.entity';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [CursosController],
   providers: [CursosService],
   imports: [
+    AuthModule,
     ConfigModule,
     TypeOrmModule.forFeature([ Curso, Estudiante, Inscripcion  ])
   ],

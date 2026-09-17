@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateEstudianteDto } from './dto/create-estudiante.dto';
 import { UpdateEstudianteDto } from './dto/update-estudiante.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { Estudiante } from './entities/estudiante.entity';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from 'node_modules/@nestjs/jwt/dist/jwt.service';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { LoginUserDto } from 'src/common/dtos/login.dto';
 
 @Injectable()
 export class EstudiantesService {
@@ -13,16 +17,54 @@ export class EstudiantesService {
   constructor(
     @InjectRepository(Estudiante)
           private readonly estudianteRepository: Repository<Estudiante>,
+          private readonly jwtService: JwtService
   ) {}
   async create(createEstudianteDto: CreateEstudianteDto) {
     try {
-      const estudiante = this.estudianteRepository.create( createEstudianteDto )
-      await this.estudianteRepository.save( estudiante )
-      return estudiante;
+      const { password, ...userData } = createEstudianteDto;
+      const estudiante = this.estudianteRepository.create({
+        ...userData,
+        password: bcrypt.hashSync( password, 10)
+     });
 
+      await this.estudianteRepository.save( estudiante )
+      delete estudiante.password;
+      
+      return {
+      ...estudiante,
+      token: this.getJwtToken({ id: estudiante.id })
+    };
     } catch (error) {
       HandleDbExceptions.handle(error, 'EstudianteService');
     }
+  }
+
+  async login( loginUserDto: LoginUserDto) {
+    const { password, email } = loginUserDto;
+
+    const user = await this.estudianteRepository.findOne({
+      where: { email },
+      select: { email: true, password: true, id: true}
+    });
+
+    if ( !user )
+      throw new UnauthorizedException('Credentials are not valid (email)');
+
+    if ( !bcrypt.compareSync( password, user.password ) )
+      throw new UnauthorizedException('Credentials are not valid (password)')
+
+    
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    };
+  }
+
+  async checkAuthStatus( user: Estudiante ) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    };
   }
 
   async findAll() {
@@ -61,4 +103,25 @@ export class EstudiantesService {
     
     return `El estudiante con el id: ${ id } ha sido eliminado.`;
   }
+
+  async deleteAllEstudiantes() {
+
+    const query = this.estudianteRepository.createQueryBuilder('estudiante');
+
+    try {
+      return await query
+        .delete()
+        .execute();
+
+    } catch (error) {
+      HandleDbExceptions.handle(error, 'EstudianteService');
+    }
+
+  }
+
+  getJwtToken( payload: JwtPayload ) {
+    const token =  this.jwtService.sign( payload );
+    return token;
+  }
+
 }

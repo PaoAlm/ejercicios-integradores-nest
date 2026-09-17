@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, BadRequestException, Delete } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, BadRequestException, Delete, UnauthorizedException } from '@nestjs/common';
 import { CreateInscripcionDto } from './dto/create-inscripcion.dto';
 import { UpdateInscripcionDto } from './dto/update-inscripcion.dto';
 import { Inscripcion } from './entities/inscripcion.entity';
@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { CursosService } from 'src/cursos/cursos.service';
+import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
+import { ValidRoles } from '../estudiantes/interfaces/valid-roles';
 
 @Injectable()
 export class InscripcionesService {
@@ -20,7 +22,7 @@ export class InscripcionesService {
 
     ) {}
 
-  async create(createInscripcionDto: CreateInscripcionDto) {
+  async create(createInscripcionDto: CreateInscripcionDto, user: Estudiante) {
     
     const { estudianteId, cursoId } = createInscripcionDto;
 
@@ -36,14 +38,18 @@ export class InscripcionesService {
 
     if (existe) throw new BadRequestException('El estudiante ya está en este curso');
 
-    try {
-      const inscripcion = this.inscripcionRepository.create({
-        estudiante,
-        curso
-      });
-      return await this.inscripcionRepository.save(inscripcion);
-    } catch (error) {
-      HandleDbExceptions.handle(error, 'InscripcionesService');
+    if (createInscripcionDto.estudianteId === user.id || user.roles.includes(ValidRoles.admin)) {
+      try {
+        const inscripcion = this.inscripcionRepository.create({
+          estudiante,
+          curso
+        });
+        return await this.inscripcionRepository.save(inscripcion);
+      } catch (error) {
+        HandleDbExceptions.handle(error, 'InscripcionesService');
+      }
+    } else {
+      throw new UnauthorizedException('No se permite registrar cursos a nombre de otro usuario');
     }
   }
 
@@ -52,22 +58,25 @@ export class InscripcionesService {
     return inscripcion;
   }
 
-  async findAllByStudent (id: string) {
+  async findAllByStudent (id: string, user: Estudiante) {
 
-    const inscripcion = await this.inscripcionRepository.find({
-      where: {
-        estudiante: { id: id }
-      }
-    });
-    return inscripcion;
-    
+    if (id === user.id || user.roles.includes(ValidRoles.admin)) {
+      const inscripcion = await this.inscripcionRepository.find({
+        where: {
+          estudiante: { id: id }
+        }
+      });
+      return inscripcion;
+    } else {
+      throw new UnauthorizedException('No se permite consultar inscripciones a nombre de otro usuario');
+    }
   }
 
   async findOne(id: string) {
     const inscripcion = await this.inscripcionRepository.findOneBy({ id });
     
         if ( !inscripcion )
-          throw new NotFoundException(`Product with ${id} not found`);
+          throw new NotFoundException(`La inscripcion con el id: ${ id } no existe.`);
     
         return inscripcion;
   }
@@ -121,4 +130,20 @@ export class InscripcionesService {
     
     return `La inscripcion con el id: ${ id } ha sido eliminado.`;
   }
+
+  async deleteAllInscripciones() {
+
+    const query = this.inscripcionRepository.createQueryBuilder('inscripcion');
+
+    try {
+      return await query
+        .delete()
+        .execute();
+
+    } catch (error) {
+      HandleDbExceptions.handle(error, 'InscripcionService');
+    }
+
+  }
+
 }
