@@ -21,6 +21,11 @@ export class CursosController {
     return this.cursosService.findAll(paginationDto);
   }
 
+  @Get('mas-populares')
+  findPopular( ) {
+    return this.cursosService.findPopular();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.cursosService.findOne(id);

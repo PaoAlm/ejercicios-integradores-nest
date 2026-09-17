@@ -116,7 +116,9 @@ export class InscripcionesService {
 }
 
   async remove(id: string) {
-    const curso = await this.findOne( id );
-    await this.inscripcionRepository.remove( curso );
+    const inscripcion = await this.findOne( id );
+    await this.inscripcionRepository.remove( inscripcion );
+    
+    return `La inscripcion con el id: ${ id } ha sido eliminado.`;
   }
 }

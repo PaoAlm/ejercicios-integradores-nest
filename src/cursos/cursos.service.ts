@@ -63,6 +63,18 @@ export class CursosService {
     return curso;
   }
 
+  async findPopular() {
+    return await this.cursoRepository.createQueryBuilder('curso')
+      .leftJoin(Inscripcion, 'inscripcion', 'inscripcion.cursoId = curso.id')
+
+      .select('curso.id', 'id')
+      .addSelect('curso.titulo', 'titulo')
+      .addSelect('COUNT(inscripcion.id)', 'cantidadInscripciones')
+      .groupBy('curso.id')
+      .orderBy('COUNT(inscripcion.id)', 'DESC')
+      .getRawMany();
+  }
+
   async update(id: string, updateCursoDto: UpdateCursoDto) {
     const curso = await this.cursoRepository.preload({
       id: id,
