@@ -30,11 +30,21 @@ interface SeedInscripciones {
     fechaCompletado: Date | null;
 }
 
+interface SeedLogros {
+    id: string;
+    codigo: string;
+    nombre: string;
+    descripcion: string;
+}
+
 interface SeedData {
     cursos: SeedCursos[];
     estudiantes: SeedEstudiantes[];
     inscripciones: SeedInscripciones[];
+    logros: SeedLogros[];
 }
+
+
 
 const CURSOS_IDS = {
     REACT: 'b823e59a-9860-4e4b-972a-463836173a7c',
@@ -160,6 +170,27 @@ export const initialData: SeedData = {
             estado: 'completado',
             fechaInscripcion: new Date('2023-02-10T09:00:00Z'),
             fechaCompletado: new Date('2023-04-15T11:20:00Z')
+        }
+    ],
+
+    logros: [
+        {
+            id: '',
+            codigo: 'PRIMEROS_PASOS',
+            nombre: 'Primeros Pasos',
+            descripcion: 'Completar al menos 1 curso.'
+        },
+        {
+            id: '',
+            codigo: 'EXPLORADOR ',
+            nombre: 'Explorador',
+            descripcion: 'Completar cursos de al menos 3 categorías distintas'
+        },
+        {
+            id: '',
+            codigo: 'MARATONISTA',
+            nombre: 'Maratonista',
+            descripcion: 'Completar cursos cuya duración sumada sea de al menos 20 horas.'
         }
     ]
 };

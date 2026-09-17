@@ -10,6 +10,7 @@ import { EstudiantesModule } from './estudiantes/estudiantes.module';
 import { InscripcionesModule } from './inscripciones/inscripciones.module';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
+import { LogrosModule } from './logros/logros.module';
 
 
 @Module({
@@ -37,7 +38,8 @@ import { AuthModule } from './auth/auth.module';
     EstudiantesModule,
     InscripcionesModule,
     SeedModule,
-    AuthModule
+    AuthModule,
+    LogrosModule
   ],
   controllers: [AppController],
   providers: [AppService],
