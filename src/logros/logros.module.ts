@@ -8,6 +8,7 @@ import { LogroObtenido } from './entities/logro-obtenido.entity';
 import { InscripcionesModule } from 'src/inscripciones/inscripciones.module';
 import { EstudiantesModule } from 'src/estudiantes/estudiantes.module';
 import { CursosService } from 'src/cursos/cursos.service';
+import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 
 @Module({
   controllers: [LogrosController],
@@ -17,6 +18,7 @@ import { CursosService } from 'src/cursos/cursos.service';
       forwardRef(() => InscripcionesModule),
       EstudiantesModule,
       TypeOrmModule.forFeature([ Logro, LogroObtenido ]),
+      NotificacionesModule
     ],
   exports: [
       LogrosService,

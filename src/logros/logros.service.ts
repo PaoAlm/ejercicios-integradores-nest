@@ -8,6 +8,7 @@ import { LogroObtenido } from './entities/logro-obtenido.entity';
 import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { InscripcionesService } from 'src/inscripciones/inscripciones.service';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { NotificacionesGateway } from 'src/notificaciones/notificaciones.gateway';
 
 @Injectable()
 export class LogrosService {
@@ -22,6 +23,8 @@ export class LogrosService {
 
     @Inject(forwardRef(() => InscripcionesService))
     private inscripcionesService: InscripcionesService,
+
+    private readonly notificacionesGateway: NotificacionesGateway,
 
   ) {}
   async create(createLogroDto: CreateLogroDto, user: Estudiante) {
@@ -122,6 +125,17 @@ export class LogrosService {
           const nuevoLogro = await this.createLogroObtenido(estudianteId, logroExplorador.id);
           if (nuevoLogro) nuevosLogros.push(nuevoLogro);
         }
+      }
+    }
+
+    if (nuevosLogros.length > 0) {
+      console.log('Emitiendo logros...', nuevosLogros);
+      for (const logroObtenido of nuevosLogros) {
+        console.log('Logro a emitir:', logroObtenido.logro);
+        this.notificacionesGateway.emitirLogroDesbloqueado(
+          estudianteId, 
+          logroObtenido.logro
+        );
       }
     }
     

@@ -21,6 +21,6 @@ import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
     }),
   ],
   providers: [JwtStrategy],
-  exports: [PassportModule, JwtStrategy, JwtModule], 
+  exports: [TypeOrmModule, PassportModule, JwtStrategy, JwtModule], 
 })
 export class AuthModule {}
