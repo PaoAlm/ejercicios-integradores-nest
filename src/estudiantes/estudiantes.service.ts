@@ -10,14 +10,21 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from 'node_modules/@nestjs/jwt/dist/jwt.service';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { LoginUserDto } from 'src/common/dtos/login.dto';
+import { ValidRoles } from './interfaces/valid-roles';
+import { Logro } from 'src/logros/entities/logro.entity';
+import { LogroObtenido } from 'src/logros/entities/logro-obtenido.entity';
 
 @Injectable()
 export class EstudiantesService {
 
   constructor(
     @InjectRepository(Estudiante)
-          private readonly estudianteRepository: Repository<Estudiante>,
-          private readonly jwtService: JwtService
+    private readonly estudianteRepository: Repository<Estudiante>,
+    
+    @InjectRepository(LogroObtenido)
+    private readonly logroObtenidoRepository: Repository<LogroObtenido>,
+          
+    private readonly jwtService: JwtService
   ) {}
   async create(createEstudianteDto: CreateEstudianteDto) {
     try {
@@ -79,6 +86,17 @@ export class EstudiantesService {
           throw new NotFoundException(`Product with ${id} not found`);
     
         return estudiante;
+  }
+
+  async findLogros(id: string, estudianteId: Estudiante) {
+    if (id === estudianteId.id || estudianteId.roles.includes(ValidRoles.admin)) {
+      const logroObtenido = await this.logroObtenidoRepository.find({
+        where: { estudiante: { id: estudianteId.id } }
+      });
+          return logroObtenido;
+        } else {
+          throw new UnauthorizedException('No se permite consultar logros a nombre de otro usuario');
+        }
   }
 
   async update(id: string, updateEstudianteDto: UpdateEstudianteDto) {

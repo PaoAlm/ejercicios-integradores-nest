@@ -8,6 +8,7 @@ import { Curso } from 'src/cursos/entities/curso.entity';
 import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { InscripcionesService } from 'src/inscripciones/inscripciones.service';
 import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
+import { LogrosService } from 'src/logros/logros.service';
 
 @Injectable()
 export class SeedService {
@@ -15,6 +16,7 @@ constructor(
       private readonly cursosService: CursosService,
       private readonly estudiantesService: EstudiantesService,
       private readonly inscripcionesService: InscripcionesService,
+      private readonly logrosService: LogrosService,
 
       @InjectRepository( Estudiante )
       private readonly estudiantesRepository: Repository<Estudiante>,
@@ -32,6 +34,7 @@ constructor(
     const adminUser = await this.insertNewUsers();
     await this.insertNewCursos( adminUser );
     await this.insertNewInscripciones( adminUser );
+    await this.insertNewLogros( adminUser );
     
     return 'seed executed';
   }
@@ -39,8 +42,10 @@ constructor(
   private async deleteTables() {
 
     await this.cursosService.deleteAllCursos();
+    await this.logrosService.deleteAllLogrosObtenidos();
     await this.estudiantesService.deleteAllEstudiantes();
     await this.inscripcionesService.deleteAllInscripciones();
+    await this.logrosService.deleteAllLogros();
 
   }
 
@@ -91,5 +96,19 @@ constructor(
       await Promise.all( insertPromises );
 
       return true;
-    }
+  }
+
+  private async insertNewLogros( adminUser: Estudiante ) {
+      const cursos = initialData.logros;
+
+      const insertPromises = [];
+
+      cursos.forEach( logro => {
+        insertPromises.push( this.logrosService.create( logro, adminUser ) );
+      });
+
+      await Promise.all( insertPromises );
+
+    return true;
+  }
 }

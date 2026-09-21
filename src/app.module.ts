@@ -11,6 +11,7 @@ import { InscripcionesModule } from './inscripciones/inscripciones.module';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { LogrosModule } from './logros/logros.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
 
 
 @Module({
@@ -39,7 +40,8 @@ import { LogrosModule } from './logros/logros.module';
     InscripcionesModule,
     SeedModule,
     AuthModule,
-    LogrosModule
+    LogrosModule,
+    NotificacionesModule
   ],
   controllers: [AppController],
   providers: [AppService],

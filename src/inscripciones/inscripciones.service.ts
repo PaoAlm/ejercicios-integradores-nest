@@ -9,16 +9,18 @@ import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { CursosService } from 'src/cursos/cursos.service';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
 import { ValidRoles } from '../estudiantes/interfaces/valid-roles';
+import { LogrosService } from 'src/logros/logros.service';
 
 @Injectable()
 export class InscripcionesService {
 
   constructor(
       @InjectRepository(Inscripcion)
-            private readonly inscripcionRepository: Repository<Inscripcion>,
+      private readonly inscripcionRepository: Repository<Inscripcion>,
 
       private estudiantesService: EstudiantesService,
-      private cursosService: CursosService
+      private cursosService: CursosService,
+      private logrosService: LogrosService
 
     ) {}
 
@@ -102,27 +104,42 @@ export class InscripcionesService {
   async updateEstado(id: string, updateInscripcionDto: UpdateInscripcionDto) {
     const { estado } = updateInscripcionDto;
     
-    const inscripcion = await this.inscripcionRepository.preload({
-      id: id,
-      estado: estado
+    const inscripcion = await this.inscripcionRepository.findOne({
+      where: { id },
+      relations: {
+        estudiante: true
+      }
     });
     
-    if ( !inscripcion ) {
+    if (!inscripcion) {
       throw new BadRequestException(`La inscripcion con el id: ${ id } no existe.`);
     }
 
-    if ( estado === 'completado' ) {
+    inscripcion.estado = estado;
+
+    if (estado === 'completado') {
       inscripcion.progreso = 100;
       inscripcion.fechaCompletado = new Date();
     } 
 
     try {
-      await this.inscripcionRepository.save( inscripcion );
-      return inscripcion;
+      await this.inscripcionRepository.save(inscripcion);
+      
+      let nuevosLogros = [];
+
+      if (estado === 'completado' && inscripcion.estudiante) {
+        nuevosLogros = await this.logrosService.evaluarLogrosEstudiante(inscripcion.estudiante.id);
+      }
+
+      return {
+        inscripcion,
+        nuevosLogrosObtenidos: nuevosLogros
+      };
+
     } catch (error) {
       HandleDbExceptions.handle(error, 'InscripcionService');
     }
-}
+  }
 
   async remove(id: string) {
     const inscripcion = await this.findOne( id );
@@ -144,6 +161,39 @@ export class InscripcionesService {
       HandleDbExceptions.handle(error, 'InscripcionService');
     }
 
+  }
+
+  async cursosCompletados(estudianteId: string): Promise<boolean> {
+    const cantidad = await this.inscripcionRepository.count({
+      where: {
+        estudiante: { id: estudianteId }, 
+        estado: 'completado',
+      },
+    });
+
+    return cantidad > 0;
+  }
+
+  async totalHorasCompletadas(estudianteId: string): Promise<number> {
+    const resultado = await this.inscripcionRepository.createQueryBuilder('inscripcion')
+      .leftJoin('inscripcion.curso', 'curso') 
+      .where('inscripcion.estudiante = :estudianteId', { estudianteId })
+      .andWhere('inscripcion.estado = :estado', { estado: 'completado' })
+      .select('SUM(curso.duracionHoras)', 'totalHoras') 
+      .getRawOne();
+
+    return Number(resultado?.totalHoras) || 0; 
+  }
+
+  async categoriasDistintas(estudianteId: string): Promise<number> {
+    const resultado = await this.inscripcionRepository.createQueryBuilder('inscripcion')
+      .leftJoin('inscripcion.curso', 'curso') 
+      .where('inscripcion.estudiante = :estudianteId', { estudianteId })
+      .andWhere('inscripcion.estado = :estado', { estado: 'completado' })
+      .select('COUNT(DISTINCT curso.CATEGORIA)', 'totalCategorias') 
+      .getRawOne();
+      
+    return Number(resultado?.totalCategorias) || 0;; 
   }
 
 }

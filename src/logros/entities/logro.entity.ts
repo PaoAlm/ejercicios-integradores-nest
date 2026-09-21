@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Logro {
@@ -6,11 +6,31 @@ export class Logro {
   id: string;
 
   @Column('text', { unique: true })
-  codigo: string; // ej. 'PRIMEROS_PASOS', 'EXPLORADOR', 'MARATONISTA'
+  codigo: string;
 
-  @Column('text')
+  @Column('text', { unique: true })
   nombre: string;
 
   @Column('text')
   descripcion: string;
+
+  @BeforeInsert()
+    checkCodigoInsert( ) {
+      if ( !this.codigo ) {
+        this.codigo = this.nombre;
+      }
+
+      this.codigo = this.codigo
+        .toUpperCase()
+        .replaceAll(' ','_')
+        .replaceAll("'",'')
+    }
+
+  @BeforeUpdate()
+    checkCodigoUpdate( ) { 
+      this.codigo = this.codigo
+        .toUpperCase()
+        .replaceAll(' ','_')
+        .replaceAll("'",'')
+    }
 }

@@ -35,6 +35,15 @@ export class EstudiantesController {
     return this.estudiantesService.findAll();
   }
 
+  @Get(':id/logros')
+  @Auth()
+  findLogros(
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() user: Estudiante
+  ) {
+    return this.estudiantesService.findLogros(id, user);
+  }
+
   @Get(':id')
   @Auth()
   findOne(@Param('id', ParseUUIDPipe) id: string) {

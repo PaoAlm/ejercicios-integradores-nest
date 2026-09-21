@@ -175,19 +175,19 @@ export const initialData: SeedData = {
 
     logros: [
         {
-            id: '',
+            id: 'd76d3ca7-dbe6-47b8-b17b-ec7a86267917',
             codigo: 'PRIMEROS_PASOS',
             nombre: 'Primeros Pasos',
             descripcion: 'Completar al menos 1 curso.'
         },
         {
-            id: '',
+            id: '690d5f34-2757-45e1-99bb-ba1dd897326c',
             codigo: 'EXPLORADOR ',
             nombre: 'Explorador',
             descripcion: 'Completar cursos de al menos 3 categorías distintas'
         },
         {
-            id: '',
+            id: '8cf8bd5b-ef78-4b53-90d2-35fd1266f671',
             codigo: 'MARATONISTA',
             nombre: 'Maratonista',
             descripcion: 'Completar cursos cuya duración sumada sea de al menos 20 horas.'
