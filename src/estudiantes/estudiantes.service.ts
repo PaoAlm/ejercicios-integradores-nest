@@ -9,9 +9,8 @@ import { Estudiante } from './entities/estudiante.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from 'node_modules/@nestjs/jwt/dist/jwt.service';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
-import { LoginUserDto } from 'src/common/dtos/login.dto';
+import { LoginUserDto } from 'src/auth/dtos/login.dto';
 import { ValidRoles } from './interfaces/valid-roles';
-import { Logro } from 'src/logros/entities/logro.entity';
 import { LogroObtenido } from 'src/logros/entities/logro-obtenido.entity';
 
 @Injectable()
@@ -61,13 +60,6 @@ export class EstudiantesService {
       throw new UnauthorizedException('Credentials are not valid (password)')
 
     
-    return {
-      ...user,
-      token: this.getJwtToken({ id: user.id })
-    };
-  }
-
-  async checkAuthStatus( user: Estudiante ) {
     return {
       ...user,
       token: this.getJwtToken({ id: user.id })

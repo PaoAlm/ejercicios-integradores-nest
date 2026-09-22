@@ -1,16 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { LogrosService } from './logros.service';
 import { CreateLogroDto } from './dto/create-logro.dto';
-import { UpdateLogroDto } from './dto/update-logro.dto';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
-import { GetUser } from 'src/auth/decorators';
-import { CreateLogroObtenidoDto } from './dto/create-logro-obtenido.dto';
+import { Auth, GetUser } from 'src/auth/decorators';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Logro } from './entities/logro.entity';
 
+@ApiTags('Logros')
 @Controller('logros')
 export class LogrosController {
   constructor(private readonly logrosService: LogrosService) {}
 
   @Post()
+  @Auth()
+  @ApiResponse({ status: 201, description: 'Nuevo Logro creado', type: Logro})
+  @ApiResponse({ status: 400, description: 'Bad Request'})
+  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   create(
     @Body() createLogroDto: CreateLogroDto,
     @GetUser() user: Estudiante

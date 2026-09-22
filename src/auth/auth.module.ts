@@ -5,8 +5,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([ Estudiante ]),
@@ -20,7 +24,6 @@ import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
       }),
     }),
   ],
-  providers: [JwtStrategy],
   exports: [TypeOrmModule, PassportModule, JwtStrategy, JwtModule], 
 })
 export class AuthModule {}

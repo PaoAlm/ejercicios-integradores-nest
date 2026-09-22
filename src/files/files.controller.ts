@@ -6,9 +6,11 @@ import { fileNamer } from './helpers/fileNamer.helper';
 import path from 'path';
 import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
-import { memoryStorage } from 'multer';
-import { writeFile } from 'fs/promises';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Auth } from 'src/auth/decorators';
+import { CursoImage } from 'src/cursos/entities/curso-image.entity';
 
+@ApiTags('Files')
 @Controller('files')
 export class FilesController {
   constructor(
@@ -17,6 +19,10 @@ export class FilesController {
   ) {}
 
   @Get('curso/:imageName')
+  @Auth()
+  @ApiResponse({ status: 201, description: 'Imagen encontrada.', type: CursoImage})
+  @ApiResponse({ status: 400, description: 'Bad Request'})
+  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   findCursoImage(
     @Res() res: Response,
     @Param('imageName') imageName: string
@@ -26,6 +32,10 @@ export class FilesController {
   }
 
   @Post('curso')
+  @Auth()
+  @ApiResponse({ status: 201, description: 'Imagen registrada', type: CursoImage})
+  @ApiResponse({ status: 400, description: 'Bad Request'})
+  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   @UseInterceptors(FileInterceptor('file'))
   uploadProductImage(@UploadedFile(
     new ParseFilePipe({
