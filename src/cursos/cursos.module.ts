@@ -4,9 +4,11 @@ import { CursosController } from './cursos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
 import { ConfigModule } from '@nestjs/config';
-import { Inscripcion } from '../inscripciones/entities/inscripcion.entity';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { InscripcionesController } from 'src/inscripciones/inscripciones.controller';
+import { CursoImage } from './entities/curso-image.entity';
+import { LogrosModule } from 'src/logros/logros.module';
 
 @Module({
   controllers: [CursosController],
@@ -14,7 +16,7 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [
     AuthModule,
     ConfigModule,
-    TypeOrmModule.forFeature([ Curso, Estudiante, Inscripcion  ])
+    TypeOrmModule.forFeature([ Curso, CursoImage, Estudiante, InscripcionesController ])
   ],
   exports: [
     CursosService,

@@ -10,6 +10,7 @@ import { CategoriasValidas } from './interfaces/categorias';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
+import { CursoImage } from './entities/curso-image.entity';
 
 @Injectable()
 export class CursosService {
@@ -19,17 +20,28 @@ export class CursosService {
   constructor(
     @InjectRepository(Curso)
       private readonly cursoRepository: Repository<Curso>,
-      private readonly configService: ConfigService,
-      private readonly dataSource: DataSource,
+    
+    @InjectRepository(CursoImage)
+      private readonly cursoImageRepository: Repository<CursoImage>,
+
+    private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {
     this.defaultLimit = configService.get<number>('DEFAULT_LIMIT');
   }
 
   async create(createCursoDto: CreateCursoDto, user: Estudiante) {
     try {
-      const curso = this.cursoRepository.create( createCursoDto )
+
+      const { images = [], ...cursoDetails} = createCursoDto;
+
+      const curso = this.cursoRepository.create({
+        ...cursoDetails,
+        images: images.map( image => this.cursoImageRepository.create( { url: image } ) ),
+      });
       await this.cursoRepository.save( curso )
-      return curso;
+
+      return {...curso, images};
 
     } catch (error) {
       HandleDbExceptions.handle(error, 'CursosService');
@@ -77,17 +89,36 @@ export class CursosService {
   }
 
   async update(id: string, updateCursoDto: UpdateCursoDto) {
-    const curso = await this.cursoRepository.preload({
-      id: id,
-      ...updateCursoDto
-    });
+    const { images, ...toUpdate } = updateCursoDto;
+    const curso = await this.cursoRepository.preload({ id, ...toUpdate });
 
-    if( !curso ) throw new BadRequestException(`El curso con el id: ${ id } no existe.`);
+    if ( !curso ) throw new NotFoundException(`Curso con el id: ${ id } no encontrado`);
 
-    try{
-      await this.cursoRepository.save( curso );
-      return curso;
-    } catch (error) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+
+      if( images ) {
+        await queryRunner.manager.delete( CursoImage, { curso: { id } } )
+
+        curso.images = images.map(
+          image => this.cursoImageRepository.create({ url: image })
+        )
+      } else {
+        
+      }
+
+      await queryRunner.manager.save( curso );
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return this.findOnePlain( id );
+
+    } catch (error) {await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       HandleDbExceptions.handle(error, 'CursosService');
     }
   }

@@ -1,4 +1,4 @@
-import { IsEnum, IsIn, IsInt, IsPositive, IsString, MinLength } from "class-validator";
+import { IsIn, IsInt, IsOptional, IsPositive, IsString, IsUrl, MinLength } from "class-validator";
 import { CategoriasValidas } from "../interfaces/categorias";
 
 export class CreateCursoDto {
@@ -18,4 +18,8 @@ export class CreateCursoDto {
     @IsInt()
     @IsPositive()
     duracionHoras: number;
+
+    @IsUrl({ require_tld: false }, { each: true })
+    @IsOptional()
+    images?: string[]
 }

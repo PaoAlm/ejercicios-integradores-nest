@@ -12,6 +12,9 @@ import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { LogrosModule } from './logros/logros.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { FilesModule } from './files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 
 @Module({
@@ -34,6 +37,10 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
       }),
     }),
 
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname,'..','public'),
+    }),
+    
     CursosModule,
     CommonModule,
     EstudiantesModule,
@@ -41,7 +48,8 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
     SeedModule,
     AuthModule,
     LogrosModule,
-    NotificacionesModule
+    NotificacionesModule,
+    FilesModule
   ],
   controllers: [AppController],
   providers: [AppService],

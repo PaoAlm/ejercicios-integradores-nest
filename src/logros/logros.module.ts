@@ -9,11 +9,13 @@ import { InscripcionesModule } from 'src/inscripciones/inscripciones.module';
 import { EstudiantesModule } from 'src/estudiantes/estudiantes.module';
 import { CursosService } from 'src/cursos/cursos.service';
 import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
+import { CursosModule } from 'src/cursos/cursos.module';
 
 @Module({
   controllers: [LogrosController],
-  providers: [LogrosService, CursosService],
+  providers: [LogrosService],
   imports: [
+      CursosModule,
       ConfigModule,
       forwardRef(() => InscripcionesModule),
       EstudiantesModule,
