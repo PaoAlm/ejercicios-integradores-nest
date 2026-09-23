@@ -7,11 +7,16 @@ import { Estudiante } from './entities/estudiante.entity';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ValidRoles } from './interfaces/valid-roles';
+import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
+import { InscripcionesService } from 'src/inscripciones/inscripciones.service';
 
 @ApiTags('Estudiantes')
 @Controller('estudiantes')
 export class EstudiantesController {
-  constructor(private readonly estudiantesService: EstudiantesService) {}
+  constructor(
+    private readonly estudiantesService: EstudiantesService,
+    private readonly inscripcionesService: InscripcionesService
+  ) {}
 
   @Post()
   @Auth(ValidRoles.admin)
@@ -20,13 +25,6 @@ export class EstudiantesController {
   @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
     create(@Body() createEstudianteDto: CreateEstudianteDto) {
     return this.estudiantesService.create(createEstudianteDto);
-  }
-
-  @Post('login')
-  @ApiResponse({ status: 201, description: 'Sesión iniciada.', type: Estudiante})
-  @ApiResponse({ status: 400, description: 'Bad Request'})
-  loginUser(@Body() loginUserDto: LoginUserDto ) {
-    return this.estudiantesService.login(loginUserDto);
   }
 
   @Get()
@@ -56,6 +54,18 @@ export class EstudiantesController {
   @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.estudiantesService.findOne(id);
+  }
+
+  @Get(':id/inscripciones')
+  @Auth()
+  @ApiResponse({ status: 201, description: 'Listado de inscripciones del estudiante', type: Inscripcion})
+  @ApiResponse({ status: 400, description: 'Bad Request'})
+  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
+  findAllByStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() user: Estudiante
+  ) {
+    return this.inscripcionesService.findAllByStudent(id, user);
   }
 
   @Patch(':id')

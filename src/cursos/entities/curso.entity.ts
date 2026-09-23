@@ -1,6 +1,4 @@
-import { Inscripcion } from "src/inscripciones/entities/inscripcion.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { CursoImage } from "./curso-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
 
 @Entity()
@@ -54,10 +52,10 @@ export class Curso {
   @Column('bool', { default: true })
   activo: boolean;
 
-  @OneToMany(
-        () => CursoImage,
-        (cursoImage) => cursoImage.curso,
-        { cascade: true, eager: true }
-    )
-    images?: CursoImage[];
+  @ApiProperty({
+    example: 'http://localhost:3000/api/files/curso/eb8ee1f3-af0a-4a30-8adc-c019282296c5.png',
+    description: 'Imagen del curso'
+  })
+  @Column('text', { nullable: true })
+  imagen: string
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { LogrosService } from './logros.service';
 import { CreateLogroDto } from './dto/create-logro.dto';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
@@ -21,6 +21,14 @@ export class LogrosController {
     @GetUser() user: Estudiante
   ) {
     return this.logrosService.create(createLogroDto, user);
+  }
+
+  @Get()
+  @Auth()
+  @ApiResponse({ status: 200, description: 'Listado de logros', type: Logro})
+  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
+  findAll() {
+    return this.logrosService.findAll();
   }
 
 }

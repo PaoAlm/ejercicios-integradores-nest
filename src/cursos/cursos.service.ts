@@ -10,7 +10,7 @@ import { CategoriasValidas } from './interfaces/categorias';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
-import { CursoImage } from './entities/curso-image.entity';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class CursosService {
@@ -20,33 +20,24 @@ export class CursosService {
   constructor(
     @InjectRepository(Curso)
       private readonly cursoRepository: Repository<Curso>,
-    
-    @InjectRepository(CursoImage)
-      private readonly cursoImageRepository: Repository<CursoImage>,
+
 
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
+    private readonly filesService: FilesService
+
   ) {
     this.defaultLimit = configService.get<number>('DEFAULT_LIMIT');
   }
 
   async create(createCursoDto: CreateCursoDto, user: Estudiante) {
-    try {
-
-      const { images = [], ...cursoDetails} = createCursoDto;
-
-      const curso = this.cursoRepository.create({
-        ...cursoDetails,
-        images: images.map( image => this.cursoImageRepository.create( { url: image } ) ),
-      });
-      await this.cursoRepository.save( curso )
-
-      return {...curso, images};
-
-    } catch (error) {
-      HandleDbExceptions.handle(error, 'CursosService');
-    }
+  try {
+    const curso = this.cursoRepository.create(createCursoDto);
+    return await this.cursoRepository.save(curso);
+  } catch (error) {
+    HandleDbExceptions.handle(error, 'CursosService');
   }
+}
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = this.defaultLimit, offset = 0, categoria = CategoriasValidas } = paginationDto;
@@ -66,13 +57,8 @@ export class CursosService {
     const curso = await this.cursoRepository.findOneBy({ id });
 
     if ( !curso )
-      throw new NotFoundException(`Product with ${id} not found`);
+      throw new NotFoundException(`El curso con el ${id} no existe.`);
 
-    return curso;
-  }
-
-  async findOnePlain( term: string){
-    const curso = await this.findOne( term );
     return curso;
   }
 
@@ -89,38 +75,20 @@ export class CursosService {
   }
 
   async update(id: string, updateCursoDto: UpdateCursoDto) {
-    const { images, ...toUpdate } = updateCursoDto;
-    const curso = await this.cursoRepository.preload({ id, ...toUpdate });
-
-    if ( !curso ) throw new NotFoundException(`Curso con el id: ${ id } no encontrado`);
-
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const curso = await this.cursoRepository.preload({ id, ...updateCursoDto });
+    if (!curso) throw new NotFoundException(`El curso con id: ${id} no existe.`);
 
     try {
-
-      if( images ) {
-        await queryRunner.manager.delete( CursoImage, { curso: { id } } )
-
-        curso.images = images.map(
-          image => this.cursoImageRepository.create({ url: image })
-        )
-      } else {
-        
-      }
-
-      await queryRunner.manager.save( curso );
-
-      await queryRunner.commitTransaction();
-      await queryRunner.release();
-
-      return this.findOnePlain( id );
-
-    } catch (error) {await queryRunner.rollbackTransaction();
-      await queryRunner.release();
+      return await this.cursoRepository.save(curso);
+    } catch (error) {
       HandleDbExceptions.handle(error, 'CursosService');
     }
+  }
+
+  async updateImagen(id: string, file: Express.Multer.File) {
+    const curso = await this.findOne(id);
+    curso.imagen = this.filesService.saveCursoImage(file);
+    return this.cursoRepository.save(curso);
   }
 
   async remove(id: string) {

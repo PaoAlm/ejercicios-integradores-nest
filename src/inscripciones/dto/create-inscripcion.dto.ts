@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsIn, IsOptional, IsString, IsUUID, Max, Min } from "class-validator";
 
 export class CreateInscripcionDto {
 
@@ -13,6 +13,8 @@ export class CreateInscripcionDto {
 
     @ApiProperty()
     @IsOptional ()
+    @Min(0)
+    @Max(100)
     progreso?: number;
 
     @ApiProperty()

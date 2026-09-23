@@ -56,18 +56,6 @@ export class InscripcionesController {
   findAll() {
     return this.inscripcionesService.findAll();
   }
-
-  @Get(':id/inscripciones')
-  @Auth()
-  @ApiResponse({ status: 201, description: 'Listado de inscripciones del estudiante', type: Inscripcion})
-  @ApiResponse({ status: 400, description: 'Bad Request'})
-  @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
-  findAllByStudent(
-    @Param('id', ParseUUIDPipe) id: string,
-    @GetUser() user: Estudiante
-  ) {
-    return this.inscripcionesService.findAllByStudent(id, user);
-  }
   
   @Delete(':id')
   @Auth()

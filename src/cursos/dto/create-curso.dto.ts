@@ -23,9 +23,4 @@ export class CreateCursoDto {
     @IsInt()
     @IsPositive()
     duracionHoras: number;
-
-    @ApiProperty()
-    @IsUrl({ require_tld: false }, { each: true })
-    @IsOptional()
-    images?: string[]
 }

@@ -19,6 +19,7 @@ export class LogrosService {
     @InjectRepository(LogroObtenido)
     private readonly logroObtenidoRepository: Repository<LogroObtenido>,
 
+    @Inject(forwardRef(() => EstudiantesService))
     private estudiantesService: EstudiantesService,
 
     @Inject(forwardRef(() => InscripcionesService))
@@ -52,8 +53,9 @@ export class LogrosService {
     return await this.logroObtenidoRepository.save(logroObtenido);
   }
 
-  findAll() {
-    return `This action returns all logros`;
+  async findAll() {
+    const logros = await this.logroRepository.find();
+    return logros;
   }
 
   async deleteAllLogros() {
@@ -89,13 +91,17 @@ export class LogrosService {
   async evaluarLogrosEstudiante(estudianteId: string) {
     const nuevosLogros = [];
 
-    const logroPrimerosPasos = await this.logroRepository.findOne({ 
-      where: { nombre: 'Primeros Pasos' }
-    });
+    const cursosCompletados = await this.inscripcionesService.contarCursosCompletados(estudianteId);
 
-    if (logroPrimerosPasos) {
-      const nuevoLogro = await this.createLogroObtenido(estudianteId, logroPrimerosPasos.id);
-      if (nuevoLogro) nuevosLogros.push(nuevoLogro);
+    if (cursosCompletados >= 1) {
+      const logroPrimerosPasos = await this.logroRepository.findOne({
+        where: { nombre: 'Primeros Pasos' },
+      });
+
+      if (logroPrimerosPasos) {
+        const nuevoLogro = await this.createLogroObtenido(estudianteId, logroPrimerosPasos.id);
+        if (nuevoLogro) nuevosLogros.push(nuevoLogro);
+      }
     }
 
     const totalHoras = await this.inscripcionesService.totalHorasCompletadas(estudianteId);
@@ -129,9 +135,7 @@ export class LogrosService {
     }
 
     if (nuevosLogros.length > 0) {
-      console.log('Emitiendo logros...', nuevosLogros);
       for (const logroObtenido of nuevosLogros) {
-        console.log('Logro a emitir:', logroObtenido.logro);
         this.notificacionesGateway.emitirLogroDesbloqueado(
           estudianteId, 
           logroObtenido.logro

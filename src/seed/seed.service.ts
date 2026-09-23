@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CursosService } from 'src/cursos/cursos.service';
-import { Repository } from 'typeorm';
 import { initialData } from './data/seed-data';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Curso } from 'src/cursos/entities/curso.entity';
 import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { InscripcionesService } from 'src/inscripciones/inscripciones.service';
-import { Inscripcion } from 'src/inscripciones/entities/inscripcion.entity';
 import { LogrosService } from 'src/logros/logros.service';
+import { Curso } from 'src/cursos/entities/curso.entity';
+import { Logro } from 'src/logros/entities/logro.entity';
 
 @Injectable()
 export class SeedService {
@@ -17,15 +15,6 @@ constructor(
       private readonly estudiantesService: EstudiantesService,
       private readonly inscripcionesService: InscripcionesService,
       private readonly logrosService: LogrosService,
-
-      @InjectRepository( Estudiante )
-      private readonly estudiantesRepository: Repository<Estudiante>,
-
-      @InjectRepository( Curso )
-      private readonly cursosRepository: Repository<Curso>,
-
-      @InjectRepository( Inscripcion )
-      private readonly inscripcionRepository: Repository<Inscripcion>
     ){}
 
   async runSeed(){
@@ -33,7 +22,7 @@ constructor(
 
     const adminUser = await this.insertNewUsers();
     await this.insertNewCursos( adminUser );
-    await this.insertNewInscripciones( adminUser );
+    await this.insertNewInscripciones();
     await this.insertNewLogros( adminUser );
     
     return 'seed executed';
@@ -50,16 +39,7 @@ constructor(
   }
 
   private async insertNewUsers() {
-    const seedUsers = initialData.estudiantes;
-
-    const users: Estudiante[] = [];
-
-    seedUsers.forEach( user => {
-      users.push( this.estudiantesRepository.create(user) );
-    });
-
-    const dbUsers = await this.estudiantesRepository.save( seedUsers );
-
+    const dbUsers = await this.estudiantesService.insertEstudiantes(initialData.estudiantes);
     return dbUsers[0];
   }
 
@@ -67,7 +47,7 @@ constructor(
   private async insertNewCursos( adminUser: Estudiante ) {
       const cursos = initialData.cursos;
 
-      const insertPromises = [];
+      const insertPromises: Promise<Curso>[] = [];
 
       cursos.forEach( curso => {
         insertPromises.push( this.cursosService.create( curso, adminUser ) );
@@ -78,30 +58,14 @@ constructor(
     return true;
   }
 
-  private async insertNewInscripciones( adminUser: Estudiante ) {
-    const inscripciones = initialData.inscripciones;
-      const insertPromises = [];
-
-      inscripciones.forEach( inscripcionData => {
-          const { cursoId, estudianteId, ...restoDatos } = inscripcionData;
-          const nuevaInscripcion = this.inscripcionRepository.create({
-              ...restoDatos,
-              estudiante: { id: estudianteId },
-              curso: { id: cursoId }
-          });
-
-          insertPromises.push( this.inscripcionRepository.save(nuevaInscripcion) );
-      });
-
-      await Promise.all( insertPromises );
-
-      return true;
+  private async insertNewInscripciones() {
+    await this.inscripcionesService.insertInscripciones(initialData.inscripciones);
   }
 
   private async insertNewLogros( adminUser: Estudiante ) {
       const cursos = initialData.logros;
 
-      const insertPromises = [];
+      const insertPromises: Promise<Logro>[] = [];
 
       cursos.forEach( logro => {
         insertPromises.push( this.logrosService.create( logro, adminUser ) );

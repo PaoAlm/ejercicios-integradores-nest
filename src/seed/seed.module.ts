@@ -9,6 +9,11 @@ import { LogrosModule } from '../logros/logros.module';
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
-  imports: [CursosModule, InscripcionesModule, EstudiantesModule, LogrosModule]
+  imports: [
+    CursosModule,
+    InscripcionesModule,
+    EstudiantesModule,
+    LogrosModule,
+  ]
 })
 export class SeedModule {}

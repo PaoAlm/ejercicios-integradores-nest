@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateEstudianteDto } from './dto/create-estudiante.dto';
 import { UpdateEstudianteDto } from './dto/update-estudiante.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { Estudiante } from './entities/estudiante.entity';
 import * as bcrypt from 'bcrypt';
@@ -45,27 +45,6 @@ export class EstudiantesService {
     }
   }
 
-  async login( loginUserDto: LoginUserDto) {
-    const { password, email } = loginUserDto;
-
-    const user = await this.estudianteRepository.findOne({
-      where: { email },
-      select: { email: true, password: true, id: true}
-    });
-
-    if ( !user )
-      throw new UnauthorizedException('Credentials are not valid (email)');
-
-    if ( !bcrypt.compareSync( password, user.password ) )
-      throw new UnauthorizedException('Credentials are not valid (password)')
-
-    
-    return {
-      ...user,
-      token: this.getJwtToken({ id: user.id })
-    };
-  }
-
   async findAll() {
     const estudiante = await this.estudianteRepository.find();
     return estudiante;
@@ -75,20 +54,28 @@ export class EstudiantesService {
     const estudiante = await this.estudianteRepository.findOneBy({ id });
     
         if ( !estudiante )
-          throw new NotFoundException(`Product with ${id} not found`);
+          throw new NotFoundException(`El estudiante con ${id} no existe`);
     
         return estudiante;
   }
 
-  async findLogros(id: string, estudianteId: Estudiante) {
-    if (id === estudianteId.id || estudianteId.roles.includes(ValidRoles.admin)) {
-      const logroObtenido = await this.logroObtenidoRepository.find({
-        where: { estudiante: { id: estudianteId.id } }
-      });
-          return logroObtenido;
-        } else {
-          throw new UnauthorizedException('No se permite consultar logros a nombre de otro usuario');
-        }
+  async findOneByEmailWithPassword(email: string) {
+    return this.estudianteRepository.findOne({
+      where: { email },
+      select: { id: true, email: true, password: true, roles: true, isActive: true },
+    });
+  }
+
+  async findLogros(id: string, user: Estudiante) {
+    if (id !== user.id && !user.roles.includes(ValidRoles.admin)) {
+    throw new ForbiddenException('No se permite consultar logros a nombre de otro usuario');
+    }
+
+    return this.logroObtenidoRepository.find({
+      where: { estudiante: { id } },
+      relations: { logro: true },
+      loadEagerRelations: false,
+    });
   }
 
   async update(id: string, updateEstudianteDto: UpdateEstudianteDto) {
@@ -128,6 +115,11 @@ export class EstudiantesService {
     }
 
   }
+
+  async insertEstudiantes(estudiantes: DeepPartial<Estudiante>[]) {
+  const entities = this.estudianteRepository.create(estudiantes);
+  return this.estudianteRepository.save(entities);
+}
 
   getJwtToken( payload: JwtPayload ) {
     const token =  this.jwtService.sign( payload );

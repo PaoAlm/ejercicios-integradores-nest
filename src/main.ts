@@ -20,7 +20,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Cursos RESTFul API')
     .setDescription('Endpoints Cursos, Inscripciones y Estudiantes')
-    .setVersion('1.0').addServer(process.env.HOST).addServer(process.env.HOST).addBearerAuth(
+    .setVersion('1.0').addServer(process.env.HOST).addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',

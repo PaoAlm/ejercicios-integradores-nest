@@ -1,8 +1,8 @@
-import { ConflictException, Injectable, NotFoundException, BadRequestException, Delete, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Delete, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { CreateInscripcionDto } from './dto/create-inscripcion.dto';
 import { UpdateInscripcionDto } from './dto/update-inscripcion.dto';
 import { Inscripcion } from './entities/inscripcion.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HandleDbExceptions } from 'src/common/helper/handle-exceptions.helper';
 import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
@@ -10,6 +10,7 @@ import { CursosService } from 'src/cursos/cursos.service';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
 import { ValidRoles } from '../estudiantes/interfaces/valid-roles';
 import { LogrosService } from 'src/logros/logros.service';
+import { LogroObtenido } from 'src/logros/entities/logro-obtenido.entity';
 
 @Injectable()
 export class InscripcionesService {
@@ -28,6 +29,10 @@ export class InscripcionesService {
     
     const { estudianteId, cursoId } = createInscripcionDto;
 
+    if (estudianteId !== user.id && !user.roles.includes(ValidRoles.admin)) {
+      throw new ForbiddenException('No se permite registrar cursos a nombre de otro usuario');
+    }
+
     const estudiante = await this.estudiantesService.findOne(estudianteId);
     if (!estudiante) throw new NotFoundException(`El estudiante con id: ${estudianteId} no existe.`);
 
@@ -40,18 +45,14 @@ export class InscripcionesService {
 
     if (existe) throw new BadRequestException('El estudiante ya está en este curso');
 
-    if (createInscripcionDto.estudianteId === user.id || user.roles.includes(ValidRoles.admin)) {
-      try {
-        const inscripcion = this.inscripcionRepository.create({
-          estudiante,
-          curso
-        });
-        return await this.inscripcionRepository.save(inscripcion);
-      } catch (error) {
-        HandleDbExceptions.handle(error, 'InscripcionesService');
-      }
-    } else {
-      throw new UnauthorizedException('No se permite registrar cursos a nombre de otro usuario');
+    try {
+      const inscripcion = this.inscripcionRepository.create({
+        estudiante,
+        curso
+      });
+      return await this.inscripcionRepository.save(inscripcion);
+    } catch (error) {
+      HandleDbExceptions.handle(error, 'InscripcionesService');
     }
   }
 
@@ -125,7 +126,7 @@ export class InscripcionesService {
     try {
       await this.inscripcionRepository.save(inscripcion);
       
-      let nuevosLogros = [];
+      let nuevosLogros: LogroObtenido[] = [];
 
       if (estado === 'completado' && inscripcion.estudiante) {
         nuevosLogros = await this.logrosService.evaluarLogrosEstudiante(inscripcion.estudiante.id);
@@ -162,7 +163,17 @@ export class InscripcionesService {
     }
 
   }
-
+  
+  async insertInscripciones(inscripciones: (DeepPartial<Inscripcion> & { estudianteId: string; cursoId: string })[]) {
+  const entities = inscripciones.map(({ estudianteId, cursoId, ...resto }) =>
+    this.inscripcionRepository.create({
+      ...resto,
+      estudiante: { id: estudianteId },
+      curso: { id: cursoId },
+    }),
+  );
+  return this.inscripcionRepository.save(entities);
+}
   async cursosCompletados(estudianteId: string): Promise<boolean> {
     const cantidad = await this.inscripcionRepository.count({
       where: {
@@ -172,6 +183,15 @@ export class InscripcionesService {
     });
 
     return cantidad > 0;
+  }
+
+  async contarCursosCompletados(estudianteId: string): Promise<number> {
+    return this.inscripcionRepository.count({
+      where: { 
+        estudiante: { id: estudianteId },
+        estado: 'completado',
+      },
+    });
   }
 
   async totalHorasCompletadas(estudianteId: string): Promise<number> {

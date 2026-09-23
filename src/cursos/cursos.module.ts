@@ -4,23 +4,18 @@ import { CursosController } from './cursos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
 import { ConfigModule } from '@nestjs/config';
-import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
-import { AuthModule } from 'src/auth/auth.module';
-import { InscripcionesController } from 'src/inscripciones/inscripciones.controller';
-import { CursoImage } from './entities/curso-image.entity';
-import { LogrosModule } from 'src/logros/logros.module';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   controllers: [CursosController],
   providers: [CursosService],
   imports: [
-    AuthModule,
+    FilesModule,
     ConfigModule,
-    TypeOrmModule.forFeature([ Curso, CursoImage, Estudiante, InscripcionesController ])
+    TypeOrmModule.forFeature([ Curso])
   ],
   exports: [
     CursosService,
-    TypeOrmModule
   ]
 })
 export class CursosModule {}

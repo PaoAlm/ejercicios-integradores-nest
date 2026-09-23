@@ -7,21 +7,21 @@ import { Logro } from './entities/logro.entity';
 import { LogroObtenido } from './entities/logro-obtenido.entity';
 import { InscripcionesModule } from 'src/inscripciones/inscripciones.module';
 import { EstudiantesModule } from 'src/estudiantes/estudiantes.module';
-import { CursosService } from 'src/cursos/cursos.service';
 import { NotificacionesModule } from 'src/notificaciones/notificaciones.module';
 import { CursosModule } from 'src/cursos/cursos.module';
 
 @Module({
   controllers: [LogrosController],
   providers: [LogrosService],
-  imports: [
-      CursosModule,
-      ConfigModule,
-      forwardRef(() => InscripcionesModule),
-      EstudiantesModule,
-      TypeOrmModule.forFeature([ Logro, LogroObtenido ]),
-      NotificacionesModule
-    ],
+  imports: 
+  [
+    CursosModule,
+    ConfigModule,
+    forwardRef(() => InscripcionesModule),
+    forwardRef(() => EstudiantesModule),
+    forwardRef(() => NotificacionesModule),
+    TypeOrmModule.forFeature([ Logro, LogroObtenido ])
+  ],
   exports: [
       LogrosService,
       TypeOrmModule,

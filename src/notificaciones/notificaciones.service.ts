@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
+import { EstudiantesService } from 'src/estudiantes/estudiantes.service';
 import { Repository } from 'typeorm';
 
 interface ConnectedClients {
@@ -16,14 +17,18 @@ export class NotificacionesService {
     private connectedClients: ConnectedClients = {}
 
     constructor(
-        @InjectRepository(Estudiante)
-        private readonly estudianteRepository: Repository<Estudiante>
+        private readonly estudiantesService: EstudiantesService
     ) {}
 
     async registerClient( client: Socket, estudianteId: string ) {
-        const estudiante = await this.estudianteRepository.findOneBy({ id: estudianteId });
+        let estudiante: Estudiante;
+        
+        try {
+            estudiante = await this.estudiantesService.findOne(estudianteId);
+        } catch {
+            throw new Error('Estudiante no encontrado');
+        }
 
-        if( !estudiante ) throw new Error('Estudiante no encontrado');
         if ( !estudiante.isActive) throw new Error('Estudiante no activo');
 
         this.checkUserConnection( estudiante );

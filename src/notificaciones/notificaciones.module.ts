@@ -1,11 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { NotificacionesService } from './notificaciones.service';
 import { NotificacionesGateway } from './notificaciones.gateway';
-import { AuthModule } from 'src/auth/auth.module';
+import { EstudiantesModule } from 'src/estudiantes/estudiantes.module';
 
 @Module({
   providers: [NotificacionesGateway, NotificacionesService],
-  imports: [AuthModule],
+  imports: [
+    forwardRef(() => EstudiantesModule)
+  ],
   exports: [NotificacionesGateway]
 })
 export class NotificacionesModule {}

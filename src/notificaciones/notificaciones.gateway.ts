@@ -1,9 +1,8 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
+import { WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
 import { NotificacionesService } from './notificaciones.service';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { JwtService } from 'node_modules/@nestjs/jwt/dist/jwt.service';
 import { Server, Socket } from 'socket.io';
-import { NewMessageDto } from './dtos/new-message.dto';
 
 @WebSocketGateway({ cors: true })
 export class NotificacionesGateway implements OnGatewayConnection, OnGatewayDisconnect {
