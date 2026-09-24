@@ -102,7 +102,7 @@ export const initialData: SeedData = {
             nombreCompleto: 'Ana García',
             email: 'ana.garcia@ejemplo.com',
             password: bcrypt.hashSync('Password123!', 10),
-            roles: ['student'],
+            roles: ['estudiante'],
             isActive: true
         },
         {
@@ -110,7 +110,7 @@ export const initialData: SeedData = {
             nombreCompleto: 'Carlos Mendoza',
             email: 'carlos.mendoza@ejemplo.com',
             password: bcrypt.hashSync('Password123!', 10),
-            roles: ['student'],
+            roles: ['estudiante'],
             isActive: true
         },
         {
@@ -118,7 +118,7 @@ export const initialData: SeedData = {
             nombreCompleto: 'Lucía Fernández',
             email: 'lucia.fernandez@ejemplo.com',
             password: bcrypt.hashSync('Password123!', 10),
-            roles: ['student'],
+            roles: ['estudiante'],
             isActive: false
         },
         {
@@ -126,7 +126,7 @@ export const initialData: SeedData = {
             nombreCompleto: 'Roberto Silva',
             email: 'roberto.silva@ejemplo.com',
             password: bcrypt.hashSync('Password123!', 10),
-            roles: ['student', 'admin'],
+            roles: ['estudiante', 'admin'],
             isActive: true
         },
         {
@@ -134,7 +134,7 @@ export const initialData: SeedData = {
             nombreCompleto: 'Elena Torres',
             email: 'elena.torres@ejemplo.com',
             password: bcrypt.hashSync('Password123!', 10),
-            roles: ['student'],
+            roles: ['estudiante'],
             isActive: true
         }
     ],
@@ -182,7 +182,7 @@ export const initialData: SeedData = {
         },
         {
             id: '690d5f34-2757-45e1-99bb-ba1dd897326c',
-            codigo: 'EXPLORADOR ',
+            codigo: 'EXPLORADOR',
             nombre: 'Explorador',
             descripcion: 'Completar cursos de al menos 3 categorías distintas'
         },

@@ -2,6 +2,7 @@ import { BadRequestException, CanActivate, ExecutionContext, ForbiddenException,
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { META_ROLES } from '../decorators/role-protected.decorator';
+import { Estudiante } from 'src/estudiantes/entities/estudiante.entity';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -19,11 +20,11 @@ export class UserRoleGuard implements CanActivate {
     if( !validRoles ) return true;
     if (validRoles.length === 0) return true;
 
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{ user?: Estudiante }>();;
     const user = req.user;
 
     if( !user )
-      throw new BadRequestException('User not found');
+      throw new BadRequestException('Estudiante no encontrado.');
 
     for (const role of user.roles) {
       if( validRoles.includes(role) )
@@ -31,7 +32,7 @@ export class UserRoleGuard implements CanActivate {
     }
 
     throw new ForbiddenException(
-      `User ${user.fullName} need a valid role: [${validRoles}]`
+      `El estudiante ${user.nombreCompleto} necesita un rol válido: [${validRoles}]`
     );
   }
 }

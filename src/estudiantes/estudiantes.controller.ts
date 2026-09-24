@@ -37,7 +37,7 @@ export class EstudiantesController {
 
   @Get(':id/logros')
   @Auth()
-  @ApiResponse({ status: 201, description: 'Listado de logros del estudiante.', type: Estudiante})
+  @ApiResponse({ status: 200, description: 'Listado de logros del estudiante.', type: Estudiante})
   @ApiResponse({ status: 400, description: 'Bad Request'})
   @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   findLogros(
@@ -49,7 +49,7 @@ export class EstudiantesController {
 
   @Get(':id')
   @Auth()
-  @ApiResponse({ status: 201, description: 'Estudiante encontrado.', type: Estudiante})
+  @ApiResponse({ status: 200, description: 'Estudiante encontrado.', type: Estudiante})
   @ApiResponse({ status: 400, description: 'Bad Request'})
   @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -58,7 +58,7 @@ export class EstudiantesController {
 
   @Get(':id/inscripciones')
   @Auth()
-  @ApiResponse({ status: 201, description: 'Listado de inscripciones del estudiante', type: Inscripcion})
+  @ApiResponse({ status: 200, description: 'Listado de inscripciones del estudiante', type: Inscripcion})
   @ApiResponse({ status: 400, description: 'Bad Request'})
   @ApiResponse({ status: 403, description: 'Forbidden. Token Related'})
   findAllByStudent(

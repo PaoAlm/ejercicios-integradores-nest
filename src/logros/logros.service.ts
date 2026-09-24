@@ -95,7 +95,7 @@ export class LogrosService {
 
     if (cursosCompletados >= 1) {
       const logroPrimerosPasos = await this.logroRepository.findOne({
-        where: { nombre: 'Primeros Pasos' },
+        where: { codigo: 'PRIMEROS_PASOS' },
       });
 
       if (logroPrimerosPasos) {
@@ -108,7 +108,7 @@ export class LogrosService {
 
     if (totalHoras >= 20) {
       const logroMaratonista = await this.logroRepository.findOne({ 
-        where: { nombre: 'Maratonista' }
+        where: { codigo: 'MARATONISTA' }
       });
 
       if (logroMaratonista) {
@@ -117,7 +117,7 @@ export class LogrosService {
       }
     }
 
-    const logroExplorador = await this.logroRepository.findOne({ where: { nombre: 'Explorador' } });
+    const logroExplorador = await this.logroRepository.findOne({ where: { codigo: 'EXPLORADOR' } });
     
     if (logroExplorador) {
       const yaTieneExplorador = await this.logroObtenidoRepository.findOne({
